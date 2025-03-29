@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Economic Data Analysis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg bg-primary py-3">
+    <div class="container d-flex align-items-center">
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="LivingCost AI Logo" height="50" class="me-3">
+        <div>
+            <h1 class="text-white m-0">LivingCost AI</h1>
+            <p class="text-white m-0">AI-Powered Insights for Economic Trends & Cost of Living Analysis</p>
+        </div>
+    </div>
+</nav>
+
+<div class="container my-5">
+    <div class="row g-4">
+        <!-- Predict Cost of Living Box -->
+        <div class="col-lg-6">
+            <div class="card p-4 shadow">
+                <h2 class="text-center">Predict Cost of Living</h2>
+                <form id="predict-form" action="/predict" method="post">
+                    <label for="rent">🏠 Rent Index</label>
+                    <input type="number" step="0.01" class="form-control" id="rent" name="rent" placeholder="Enter Rent Index" required>
+
+                    <label for="living_plus_rent" class="mt-2">💰 Cost of Living + Rent Index</label>
+                    <input type="number" step="0.01" class="form-control" id="living_plus_rent" name="living_plus_rent" placeholder="Enter Cost of Living + Rent Index" required>
+
+                    <label for="groceries" class="mt-2">🛒 Groceries Index</label>
+                    <input type="number" step="0.01" class="form-control" id="groceries" name="groceries" placeholder="Enter Groceries Index" required>
+
+                    <label for="restaurant" class="mt-2">🍽️ Restaurant Price Index</label>
+                    <input type="number" step="0.01" class="form-control" id="restaurant" name="restaurant" placeholder="Enter Restaurant Price Index" required>
+
+                    <label for="purchasing_power" class="mt-2">📉 Local Purchasing Power Index</label>
+                    <input type="number" step="0.01" class="form-control" id="purchasing_power" name="purchasing_power" placeholder="Enter Local Purchasing Power Index" required>
+
+                    <button type="submit" class="btn btn-primary w-100 mt-3">🔍 Predict</button>
+                </form>
+
+                <h3 class="mt-3 text-center">Predicted Cost: <span id="prediction-result">-</span></h3>
+            </div>
+        </div>
+
+        <!-- Data Analysis Box -->
+        <div class="col-lg-6">
+            <div class="card p-4 shadow">
+                <h2 class="text-center">Data Analysis</h2>
+                <div class="d-grid gap-2">
+                    <button onclick="fetchPlot('cost_vs_rent')" class="btn btn-secondary">📊 Cost of Living vs Rent Index</button>
+                    <button onclick="fetchPlot('cost_vs_groceries')" class="btn btn-secondary">📊 Cost of Living vs Groceries Index</button>
+                    <button onclick="fetchPlot('top_10_expensive')" class="btn btn-danger">🔥 Top 10 Most Expensive Countries</button>
+                    <button onclick="fetchPlot('top_10_cheap')" class="btn btn-success">💰 Top 10 Least Expensive Countries</button>
+                </div>
+                <img id="plot-img" class="img-fluid mt-3" src="" alt="Plot will be displayed here">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById("predict-form").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevents default form submission
+        let formData = new FormData(this);
+
+        fetch("/predict", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.result) {
+                document.getElementById("prediction-result").textContent = data.result;
+            } else {
+                alert("Prediction failed: " + (data.error || "Unknown error"));
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Failed to fetch prediction.");
+        });
+    });
+
+    function fetchPlot(plotType) {
+        let plotImg = document.getElementById("plot-img");
+        plotImg.src = `/plot/${plotType}?t=${Date.now()}`; // Append timestamp to avoid caching
+        plotImg.alt = `Displaying ${plotType} plot...`;
+    }
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
